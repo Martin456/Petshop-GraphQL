@@ -1,5 +1,7 @@
 import graphene
 import graphene.types.datetime
+import graphene.types.uuid
+import uuid
 
 # Test implementation
 PETS = []
@@ -36,7 +38,7 @@ class Order(graphene.ObjectType):
 
 
 class User(graphene.ObjectType):
-    id = graphene.Int()
+    id = graphene.types.uuid.UUID()
     username = graphene.String()
     firstName = graphene.String()
     lastName = graphene.String()
@@ -44,6 +46,15 @@ class User(graphene.ObjectType):
     password = graphene.String()
     phone = graphene.String()
     userStatus = graphene.Int()
+
+    def __init__(self, username, firstName, lastName, email, password, phone):
+        self.id = uuid.uuid4()
+        self.username = username
+        self.firstName = firstName
+        self.lastName = lastName
+        self.email = email
+        self.password = password
+        self.phone = phone
 
 
 class Query(graphene.ObjectType):
@@ -78,9 +89,20 @@ class CreateUser(graphene.Mutation):
         user = User(username=username, firstName=firstName, lastName=lastName,
                     email=email, password=password, phone=phone)
         USERS.append(user)
-        ok = True
-        return CreateUser(user=user, ok=ok)
+        return CreateUser(user=user, ok=True)
 
+
+class DeleteUser(graphene.Mutation):
+    class Arguments:
+        id = graphene.types.uuid.UUID()
+
+    ok = graphene.Boolean()
+
+    def mutate(self, info, id):
+        matches = (item for item in USERS if item.id == id)
+        for item in matches:
+            USERS.remove(item)
+        return DeleteUser(ok=True)
 '''
 class CreatePet(graphene.Mutation):
     def mutate(self, info):
@@ -94,5 +116,6 @@ class CreateOrder(graphene.Mutation):
     
 class Mutations(graphene.ObjectType):
     create_user = CreateUser.Field()
+    delete_user = DeleteUser.Field()
     # create_pet = CreatePet.Field()
     # create_order = CreateOrder.Field()
