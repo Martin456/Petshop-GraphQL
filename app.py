@@ -1,18 +1,15 @@
 import graphene
 from flask import Flask
 from flask_graphql import GraphQLView
-from petshop_schema import Query
+from petshop_schema import Query, Mutations
+
 
 app = Flask(__name__)
 
-schema = graphene.Schema(query=Query)
+schema = graphene.Schema(query=Query, mutation=Mutations)
 
-app.add_url_rule('/graphql', view_func=GraphQLView.as_view('graphql', schema=schema, graphiql=True))
+app.add_url_rule('/graphql', view_func=GraphQLView.as_view('graphql',
+                 schema=schema, graphiql=True))
 
-# Optional, for adding batch query support (used in Apollo-Client)
-# app.add_url_rule('/graphql/batch', view_func=GraphQLView.as_view('graphql', schema=schema, batch=True))
-
-
-@app.route('/')
-def hello_world():
-    return 'Hello, World!'
+if __name__ == "__main__":
+    app.run()
