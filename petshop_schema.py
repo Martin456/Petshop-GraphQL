@@ -8,19 +8,26 @@ PETS = []
 USERS = []
 ORDERS = []
 
+class Patron(graphene.ObjectType):
+    id = graphene.ID()
+    name = graphene.String()
+    age = graphene.Int()
+
+PATRONS = {1:Patron(id=1, name='Syrus', age=27)}
+
 
 class Category(graphene.ObjectType):
-    id = graphene.Int(required=True)
+    id = graphene.types.uuid.UUID()
     name = graphene.String(required=True)
 
 
 class Tag(graphene.ObjectType):
-    id = graphene.Int(required=True)
+    id = graphene.types.uuid.UUID()
     name = graphene.String(required=True)
 
 
 class Pet(graphene.ObjectType):
-    id = graphene.Int(required=True)
+    id = graphene.types.uuid.UUID()
     category = Category()
     name = graphene.String(required=True)
     photoUrls = graphene.List(graphene.String)
@@ -29,7 +36,7 @@ class Pet(graphene.ObjectType):
 
 
 class Order(graphene.ObjectType):
-    id = graphene.Int()
+    id = graphene.types.uuid.UUID()
     petId = graphene.Int()
     quantity = graphene.Int()
     shipDate = graphene.types.datetime.DateTime()
@@ -43,7 +50,7 @@ class User(graphene.ObjectType):
     firstName = graphene.String()
     lastName = graphene.String()
     email = graphene.String()
-    password = graphene.String()
+    _password = graphene.String()
     phone = graphene.String()
     userStatus = graphene.Int()
 
@@ -53,7 +60,7 @@ class User(graphene.ObjectType):
         self.firstName = firstName
         self.lastName = lastName
         self.email = email
-        self.password = password
+        self._password = password
         self.phone = phone
 
 
@@ -61,6 +68,7 @@ class Query(graphene.ObjectType):
     users = graphene.List(User)
     pets = graphene.List(Pet)
     store = graphene.List(Order)
+    patron = graphene.Field(Patron, id=graphene.Int())
 
     def resolve_users(self, info):
         return USERS
@@ -70,6 +78,11 @@ class Query(graphene.ObjectType):
 
     def resolve_store(self, info):
         return ORDERS
+
+    def resolve_patron(self, info, id):
+        return PATRONS.get(id)
+
+
 
 
 class CreateUser(graphene.Mutation):
@@ -84,7 +97,7 @@ class CreateUser(graphene.Mutation):
     ok = graphene.Boolean()
     user = graphene.Field(lambda: User)
 
-    def mutate(self, info, username, firstName, lastName, email, 
+    def mutate(self, info, username, firstName, lastName, email,
                password, phone):
         user = User(username=username, firstName=firstName, lastName=lastName,
                     email=email, password=password, phone=phone)
